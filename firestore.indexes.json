@@ -1,0 +1,18 @@
+{
+  "indexes": [],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "results",
+      "fieldPath": "expireAt",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION" },
+        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
+      ]
+    },
+    { "collectionGroup": "tests", "fieldPath": "d", "indexes": [] },
+    { "collectionGroup": "tests", "fieldPath": "pk", "indexes": [] },
+    { "collectionGroup": "results", "fieldPath": "c", "indexes": [] },
+    { "collectionGroup": "results", "fieldPath": "e", "indexes": [] },
+    { "collectionGroup": "results", "fieldPath": "iv", "indexes": [] }
+  ]
+}

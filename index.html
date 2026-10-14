@@ -1,0 +1,884 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tree Test UCOM</title>
+<meta name="description" content="Crea un tree test sin cuentas, compártelo con un enlace y mira los resultados. Todo se borra solo en pocos días.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one working column; the participant screen copies the classic tree-test look (task header, olive rule, gray indented rows). */
+:root {
+  --bg: #ffffff;
+  --fg: #2a2b28;
+  --muted: #6b6d67;
+  --line: #e2e3de;
+  --surface: #f5f6f2;
+  --row: #e8e8e6;
+  --row-hover: #dcdcd9;
+  --row-open: #d9d9d6;
+  --accent: #8db33a;
+  --accent-strong: #5d7d1b;
+  --accent-soft: #dbeeaf;
+  --on-accent: #1d270a;
+  --link: #3c6789;
+  --ok: #4e8a2a;
+  --ok-soft: #b8db8b;
+  --bad: #c2452d;
+  --bad-soft: #f4c9be;
+  --skip: #b4b5ae;
+  --font: "Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --indent: 21px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b1c1a; --fg: #ebebe6; --muted: #a4a59e; --line: #34362f; --surface: #232521;
+    --row: #2d2f2b; --row-hover: #383a35; --row-open: #3b3e37;
+    --accent: #a3c955; --accent-strong: #bedd7f; --accent-soft: #3a4a1d; --on-accent: #172007;
+    --link: #93bde3; --ok: #8cc65c; --ok-soft: #3f5a26; --bad: #ec8a74; --bad-soft: #5c2c22; --skip: #64665f;
+    color-scheme: dark;
+  }
+}
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.2; }
+p { margin: 0; }
+img { max-width: 100%; }
+button, input, textarea, select { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 2px; }
+
+.wrap { max-width: 880px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px; display: grid; gap: 28px; }
+.narrow { max-width: 640px; }
+.topbar { border-bottom: 1px solid var(--line); padding-top: env(safe-area-inset-top, 0px); }
+.topbar-in { max-width: 880px; margin: 0 auto; padding-inline: 20px; padding-block: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; }
+.brand-mark { width: 22px; height: 22px; display: inline-grid; gap: 3px; align-content: center; }
+.brand-mark i { display: block; height: 5px; background: var(--row-open); border-radius: 1px; }
+.brand-mark i:nth-child(2) { margin-left: 5px; }
+.brand-mark i:nth-child(3) { margin-left: 10px; background: var(--accent); }
+.brand small { font-weight: 500; color: var(--muted); }
+
+.eyebrow { font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-strong); }
+.lead { font-size: 18px; color: var(--muted); max-width: 60ch; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+h1 { font-size: clamp(28px, 4vw, 38px); letter-spacing: -0.02em; font-weight: 700; }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 17px; font-weight: 600; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line); background: var(--bg); padding: 9px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; text-decoration: none; }
+.btn:hover { background: var(--surface); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.primary:hover { filter: brightness(0.95); }
+.btn.small { padding: 6px 11px; font-size: 14px; }
+.btn.danger { color: var(--bad); }
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+.link { background: none; border: 0; padding: 0; color: var(--link); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.row-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.card { border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 14px; background: var(--bg); min-width: 0; }
+.soft { background: var(--surface); border-color: transparent; }
+.hint { color: var(--muted); font-size: 15px; max-width: 70ch; }
+.notice { padding: 10px 14px; border-radius: 8px; background: var(--accent-soft); font-size: 15px; }
+.warn { padding: 10px 14px; border-radius: 8px; background: var(--bad-soft); font-size: 15px; }
+
+/* Home */
+.hero { display: grid; gap: 14px; padding-block: 12px 4px; }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 0; margin: 0; list-style: none; counter-reset: s; }
+.steps li { counter-increment: s; background: var(--surface); border-radius: 10px; padding: 16px; display: grid; gap: 4px; align-content: start; }
+.steps li::before { content: counter(s); font-weight: 700; color: var(--accent-strong); font-size: 14px; }
+.steps b { font-weight: 600; }
+.steps span { color: var(--muted); font-size: 15px; }
+.tests { display: grid; gap: 10px; }
+.test-item { display: flex; gap: 12px 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; }
+.test-item .meta { min-width: 0; display: grid; gap: 2px; }
+.test-item .meta b { overflow-wrap: anywhere; }
+.badge { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: var(--row); color: var(--muted); vertical-align: middle; margin-left: 6px; }
+.badge.live { background: var(--accent-soft); color: var(--accent-strong); }
+.badge.gone { background: var(--bad-soft); color: var(--bad); }
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.facts div { display: grid; gap: 4px; font-size: 15px; }
+.facts b { font-weight: 600; }
+.facts span { color: var(--muted); }
+
+/* Forms */
+label.f, .f { display: grid; gap: 6px; font-weight: 600; font-size: 15px; min-width: 0; }
+input[type="text"], textarea, select { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 10px 12px; font-weight: 400; }
+select { width: auto; padding-right: 32px; }
+textarea { resize: vertical; line-height: 1.55; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+#treeText { font-family: var(--mono); font-size: 14px; min-height: 340px; tab-size: 2; white-space: pre; overflow-x: auto; }
+.tp-box { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; max-height: 420px; overflow: auto; font-size: 15px; font-weight: 400; }
+.tp, .tp ul { list-style: none; margin: 0; padding: 0; }
+.tp ul { padding-left: 18px; border-left: 1px solid var(--line); margin-left: 5px; }
+.tp li { padding-block: 2px; }
+.tp li > span::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 2px; margin-right: 8px; vertical-align: middle; background: var(--row-open); }
+.tp li.lf > span::before { background: var(--accent); border-radius: 50%; }
+.tp .root > span { font-weight: 600; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); font-weight: 400; }
+.legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 2px; background: var(--row-open); vertical-align: middle; }
+.legend span.lf::before { background: var(--accent); border-radius: 50%; }
+
+.task-ed { border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; }
+.task-ed-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.task-ed-head b { font-size: 15px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 14px; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); overflow-wrap: anywhere; }
+.chip.missing { background: var(--bad-soft); }
+details.pick summary { cursor: pointer; color: var(--link); font-weight: 600; font-size: 15px; }
+.pick-list { margin-top: 10px; max-height: 260px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; display: grid; gap: 2px; }
+.pick-list .grp { font-size: 13px; font-weight: 600; color: var(--muted); padding-top: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+.pick-list label { display: flex; gap: 8px; align-items: baseline; font-size: 15px; cursor: pointer; padding: 3px 0; }
+.check { display: flex; gap: 10px; align-items: center; font-size: 15px; }
+.actionbar { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding-block: 12px calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 2; }
+.actionbar-in { max-width: 880px; margin: 0 auto; padding-inline: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.actionbar-in .msg { font-size: 14px; color: var(--muted); flex-basis: 100%; }
+.actionbar-in .msg:empty { display: none; }
+.inline-field { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; }
+
+/* Share */
+.sharebox { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px; align-items: start; }
+.urlrow { display: flex; gap: 8px; }
+.urlrow input { font-family: var(--mono); font-size: 13px; min-width: 0; }
+.qr { background: #ffffff; padding: 10px; border-radius: 8px; border: 1px solid var(--line); width: 202px; height: 202px; display: grid; place-items: center; }
+.qr img, .qr canvas { display: block; }
+.keycard { border: 2px dashed var(--bad); }
+
+/* Participant: classic tree-test screen */
+.tt-head { border-bottom: 4px solid var(--accent); padding-top: env(safe-area-inset-top, 0px); }
+.tt-head-in { max-width: 880px; margin: 0 auto; padding-inline: 20px; padding-block: 22px 26px; display: grid; gap: 10px; }
+.tt-row1 { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.tt-row1 h2 { font-size: 22px; font-weight: 600; }
+.tt-task { color: var(--muted); font-size: 18px; max-width: 62ch; }
+.tt-body { max-width: 880px; margin: 0 auto; padding-inline: 20px; padding-block: 36px 80px; }
+.tree { display: grid; gap: 5px; justify-items: start; }
+.trow { --d: 0; margin-left: calc(var(--d) * var(--indent)); width: min(312px, calc(100% - var(--d) * var(--indent))); min-height: 34px; display: flex; align-items: center; gap: 8px; text-align: left; border: 0; border-radius: 0; background: var(--row); padding: 6px 11px; cursor: pointer; font-size: 16px; line-height: 1.3; }
+.trow:hover { background: var(--row-hover); }
+.trow.open { background: var(--row-open); }
+.trow .tri { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid currentColor; flex: none; }
+.sel-wrap { display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch; margin-left: calc(var(--d) * var(--indent)); max-width: calc(100% - var(--d) * var(--indent)); }
+.trow.sel { margin-left: 0; width: min(312px, 100%); background: var(--accent-soft); outline: 2px solid var(--accent); outline-offset: -2px; font-weight: 700; cursor: default; }
+.find { background: var(--accent); color: var(--on-accent); border: 0; padding: 6px 16px; font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; min-height: 34px; }
+.find:hover { filter: brightness(0.95); }
+.enter { animation: rowin 160ms ease-out both; }
+@keyframes rowin { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .enter { animation: none; } }
+.preview-bar { background: var(--surface); font-size: 14px; }
+.preview-bar .topbar-in { padding-block: 8px; }
+ol.how { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
+
+/* Results */
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.stat { background: var(--surface); border-radius: 10px; padding: 14px 16px; display: grid; gap: 2px; }
+.stat b { font-size: 28px; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.stat span { font-size: 14px; color: var(--muted); }
+.rtask { display: grid; gap: 16px; }
+.rtask-head { display: grid; gap: 4px; }
+.kpis { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 15px; }
+.kpis b { font-variant-numeric: tabular-nums; font-size: 20px; margin-right: 4px; }
+.bar { display: flex; height: 14px; border-radius: 4px; overflow: hidden; background: var(--row); }
+.bar i { display: block; height: 100%; }
+.c-ds { background: var(--ok); } .c-is { background: var(--ok-soft); } .c-df { background: var(--bad); } .c-if { background: var(--bad-soft); } .c-sk { background: var(--skip); }
+.blegend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }
+.blegend span { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.blegend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.cols2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.hlist { display: grid; gap: 8px; align-content: start; }
+.hrow { display: grid; grid-template-columns: minmax(0, 1fr) 46px; gap: 4px 10px; align-items: center; font-size: 14px; }
+.hrow .lbl { overflow-wrap: anywhere; }
+.hrow .num { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+.hrow .track { grid-column: 1 / -1; height: 6px; background: var(--row); border-radius: 3px; overflow: hidden; }
+.hrow .track i { display: block; height: 100%; background: var(--skip); }
+.hrow.good .track i { background: var(--ok); }
+.ok-mark { color: var(--ok); font-weight: 700; margin-left: 4px; }
+details.paths summary { cursor: pointer; color: var(--link); font-weight: 600; font-size: 15px; }
+.pathlist { display: grid; gap: 8px; margin-top: 10px; font-size: 14px; }
+.pathlist > div { display: grid; gap: 2px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.pill { font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; margin-left: 6px; }
+.pill.ok { background: var(--ok-soft); } .pill.bad { background: var(--bad-soft); } .pill.sk { background: var(--row); }
+.trail { color: var(--muted); overflow-wrap: anywhere; }
+.trail .back { color: var(--bad); font-weight: 600; }
+.empty { text-align: center; padding: 28px 16px; color: var(--muted); display: grid; gap: 10px; justify-items: center; }
+.footer { max-width: 880px; margin: 0 auto; padding-inline: 20px; padding-block: 0 32px; font-size: 13px; color: var(--muted); }
+
+@media (max-width: 720px) {
+  .steps, .stats, .cols2, .fields, .split, .sharebox, .facts { grid-template-columns: minmax(0, 1fr); }
+  #treeText { min-height: 240px; }
+  .qr { justify-self: start; }
+  .tt-body { padding-block: 24px 64px; }
+  .urlrow { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+<div id="app" aria-live="polite"></div>
+<noscript><p style="padding:20px">Esta página necesita JavaScript.</p></noscript>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(() => {
+  /* ---------- config ---------- */
+  const FS_PROJECT = "tree-test-ucom";
+  const FS_KEY = "AIzaSyAR6aS7Ib4bXOWdwxZ7IiXyYnB2B63DU7g"; // public web key; access is governed by firestore.rules
+  const FS_ROOT = `https://firestore.googleapis.com/v1/projects/${FS_PROJECT}/databases/(default)/documents`;
+  const DAY = 86400000;
+  const RETENTION = [1, 3, 7];
+  const BASE = location.origin + location.pathname;
+
+  const app = document.getElementById("app");
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const store = {
+    get(k, f) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : f; } catch (e) { return f; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+    del(k) { try { localStorage.removeItem(k); } catch (e) {} },
+  };
+  const ALNUM = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const randId = (n) => Array.from(crypto.getRandomValues(new Uint8Array(n)), (b) => ALNUM[b % 62]).join("");
+  const uid = (p) => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const fmtDate = (ms) => new Date(ms).toLocaleString("es", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+  function timeLeft(ms) { const d = ms - Date.now(); if (d <= 0) return "vencida"; const h = Math.round(d / 3600000); return h < 48 ? `quedan ${h} h` : `quedan ${Math.round(d / DAY)} días`; }
+
+  /* ---------- crypto: results are encrypted for the creator ---------- */
+  const b64u = (bytes) => { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); };
+  const unb64u = (str) => { const s = str.replace(/-/g, "+").replace(/_/g, "/"); const bin = atob(s + "===".slice((s.length + 3) % 4)); const out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out; };
+  const EC = { name: "ECDH", namedCurve: "P-256" };
+  async function genKeys() {
+    const kp = await crypto.subtle.generateKey(EC, true, ["deriveKey"]);
+    return { pk: b64u(new Uint8Array(await crypto.subtle.exportKey("raw", kp.publicKey))), sk: b64u(new Uint8Array(await crypto.subtle.exportKey("pkcs8", kp.privateKey))) };
+  }
+  async function encryptFor(pk, obj) {
+    const pub = await crypto.subtle.importKey("raw", unb64u(pk), EC, false, []);
+    const eph = await crypto.subtle.generateKey(EC, true, ["deriveKey"]);
+    const aes = await crypto.subtle.deriveKey({ name: "ECDH", public: pub }, eph.privateKey, { name: "AES-GCM", length: 256 }, false, ["encrypt"]);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, aes, new TextEncoder().encode(JSON.stringify(obj))));
+    return { c: b64u(ct), e: b64u(new Uint8Array(await crypto.subtle.exportKey("raw", eph.publicKey))), iv: b64u(iv) };
+  }
+  const skCache = new Map();
+  async function decryptWith(sk, rec) {
+    if (!skCache.has(sk)) skCache.set(sk, await crypto.subtle.importKey("pkcs8", unb64u(sk), EC, false, ["deriveKey"]));
+    const pub = await crypto.subtle.importKey("raw", unb64u(rec.e), EC, false, []);
+    const aes = await crypto.subtle.deriveKey({ name: "ECDH", public: pub }, skCache.get(sk), { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+    const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64u(rec.iv) }, aes, unb64u(rec.c));
+    return JSON.parse(new TextDecoder().decode(pt));
+  }
+
+  /* ---------- Firestore REST (no SDK, no accounts) ---------- */
+  async function fsCreateTest(id, test, pk, expireAt) {
+    const res = await fetch(`${FS_ROOT}/tests?documentId=${id}&key=${FS_KEY}`, { method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ fields: { d: { stringValue: JSON.stringify(test) }, pk: { stringValue: pk }, expireAt: { timestampValue: new Date(expireAt).toISOString() } } }) });
+    if (!res.ok) throw new Error("create " + res.status);
+  }
+  async function fsGetTest(id) {
+    const res = await fetch(`${FS_ROOT}/tests/${encodeURIComponent(id)}?key=${FS_KEY}`);
+    if (res.status === 403 || res.status === 404) return null;
+    if (!res.ok) throw new Error("get " + res.status);
+    const doc = await res.json();
+    return { test: JSON.parse(doc.fields.d.stringValue), pk: doc.fields.pk.stringValue, expireAt: Date.parse(doc.fields.expireAt.timestampValue) };
+  }
+  async function fsAddResult(id, enc, expireAt) {
+    const res = await fetch(`${FS_ROOT}/tests/${encodeURIComponent(id)}/results?key=${FS_KEY}`, { method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ fields: { c: { stringValue: enc.c }, e: { stringValue: enc.e }, iv: { stringValue: enc.iv }, expireAt: { timestampValue: new Date(expireAt).toISOString() } } }) });
+    if (!res.ok) throw new Error("result " + res.status);
+  }
+  async function fsListResults(id) {
+    const out = []; let token = "";
+    for (let i = 0; i < 20; i++) {
+      const res = await fetch(`${FS_ROOT}/tests/${encodeURIComponent(id)}/results?pageSize=300&key=${FS_KEY}${token ? "&pageToken=" + encodeURIComponent(token) : ""}`);
+      if (!res.ok) throw new Error("list " + res.status);
+      const j = await res.json();
+      (j.documents || []).forEach((d) => out.push({ id: d.name.split("/").pop(), c: d.fields.c.stringValue, e: d.fields.e.stringValue, iv: d.fields.iv.stringValue }));
+      if (!j.nextPageToken) break; token = j.nextPageToken;
+    }
+    return out;
+  }
+
+  /* Housekeeping: delete documents whose expireAt has passed. The rules
+     allow anyone to find and delete expired documents and nothing else,
+     so every visit helps keep the database small. Runs at most hourly. */
+  async function sweepExpired() {
+    if (store.get("ttu.sweep", 0) > Date.now() - 3600000) return;
+    store.set("ttu.sweep", Date.now());
+    const cutoff = new Date(Date.now() - 120000).toISOString();
+    for (const from of [{ collectionId: "results", allDescendants: true }, { collectionId: "tests" }]) {
+      try {
+        const res = await fetch(`${FS_ROOT}:runQuery?key=${FS_KEY}`, { method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ structuredQuery: { from: [from], select: { fields: [{ fieldPath: "__name__" }] }, where: { fieldFilter: { field: { fieldPath: "expireAt" }, op: "LESS_THAN", value: { timestampValue: cutoff } } }, limit: 100 } }) });
+        if (!res.ok) continue;
+        for (const row of await res.json()) if (row.document) await fetch(`https://firestore.googleapis.com/v1/${row.document.name}?key=${FS_KEY}`, { method: "DELETE" });
+      } catch (e) {}
+    }
+  }
+
+  /* ---------- tree model ---------- */
+  function parseTree(text) {
+    const root = { label: "Inicio", children: [] };
+    const stack = [{ node: root, indent: -1 }];
+    let count = 0, maxDepth = 0;
+    const dupes = new Set();
+    for (const raw of String(text || "").split(/\r?\n/)) {
+      if (!raw.trim()) continue;
+      const m = raw.match(/^([ \t]*)(.*)$/);
+      let indent = 0; for (const ch of m[1]) indent += ch === "\t" ? 2 : 1;
+      const label = m[2].replace(/^[-*•·]\s+/, "").trim().slice(0, 80);
+      if (!label) continue;
+      while (stack.length > 1 && stack[stack.length - 1].indent >= indent) stack.pop();
+      const parent = stack[stack.length - 1].node;
+      if (parent.children.some((c) => c.label.toLowerCase() === label.toLowerCase())) dupes.add(label);
+      const node = { label, children: [] };
+      parent.children.push(node);
+      stack.push({ node, indent });
+      count++; maxDepth = Math.max(maxDepth, stack.length - 1);
+    }
+    return { root, count, maxDepth, dupes: [...dupes] };
+  }
+  function leavesOf(root) {
+    const out = [];
+    const rec = (n, labels, idx) => n.children.forEach((c, i) => { const L = labels.concat(c.label), I = idx.concat(i); if (c.children.length) rec(c, L, I); else out.push({ key: L.join(" › "), labels: L, idx: I.join(".") }); });
+    rec(root, [], []);
+    return out;
+  }
+  const enc = (n) => (n.children.length ? [n.label, n.children.map(enc)] : [n.label]);
+  function nodeAt(test, path) { let list = test.t, node = null; for (const i of path) { node = list[i]; list = node[1] || []; } return node; }
+  function childrenAt(test, path) { return path.length ? (nodeAt(test, path)[1] || []) : test.t; }
+  function labelsFor(test, key) { if (key == null || key === "r") return ["Inicio"]; const out = []; let list = test.t; for (const i of key.split(".").map(Number)) { const n = list[i]; if (!n) break; out.push(n[0]); list = n[1] || []; } return out; }
+
+  function validate(draft) {
+    const p = parseTree(draft.treeText), leaves = leavesOf(p.root), keys = new Set(leaves.map((l) => l.key));
+    const errs = [];
+    if (!draft.name.trim()) errs.push("Ponle un nombre a la prueba.");
+    if (p.count < 2) errs.push("El árbol necesita al menos dos categorías.");
+    if (p.count > 250) errs.push(`El árbol tiene ${p.count} ítems; el máximo es 250.`);
+    if (p.maxDepth > 6) errs.push("El árbol tiene más de 6 niveles. Simplifícalo.");
+    if (p.dupes.length) errs.push(`Hay etiquetas repetidas en el mismo nivel: ${p.dupes.join(", ")}.`);
+    if (!draft.tasks.length) errs.push("Agrega al menos una tarea.");
+    draft.tasks.forEach((t, i) => {
+      if (!t.text.trim()) errs.push(`La tarea ${i + 1} no tiene texto.`);
+      const ok = t.answers.filter((a) => keys.has(a));
+      if (!ok.length) errs.push(`Marca la respuesta correcta de la tarea ${i + 1}.`);
+      else if (ok.length < t.answers.length) errs.push(`La tarea ${i + 1} apunta a una categoría que ya no está en el árbol.`);
+    });
+    return errs;
+  }
+  function buildTest(draft) {
+    const { root } = parseTree(draft.treeText);
+    const keyToIdx = new Map(leavesOf(root).map((l) => [l.key, l.idx]));
+    return { v: 1, n: draft.name.trim().slice(0, 120), m: draft.team.trim().slice(0, 60), s: draft.shuffle ? 1 : 0, t: root.children.map(enc), k: draft.tasks.map((t) => [t.text.trim().slice(0, 400), t.answers.map((a) => keyToIdx.get(a)).filter(Boolean)]) };
+  }
+
+  /* ---------- drafts (this browser only) ---------- */
+  const EXAMPLE_TREE = [
+    "Frutas y verduras", "  Frutas", "  Verduras", "  Hierbas frescas",
+    "Lácteos y huevos", "  Leche", "  Yogures", "  Quesos", "  Huevos",
+    "Almacén", "  Arroz y pastas", "  Harinas", "  Conservas", "  Café, té e infusiones",
+    "Bebidas", "  Aguas", "  Gaseosas", "  Jugos",
+    "Limpieza", "  Ropa", "  Cocina", "  Baño",
+  ].join("\n");
+  function exampleDraft() {
+    return {
+      id: "example", example: true, name: "Supermercado online", team: "Ejemplo", shuffle: false, days: 7, updatedAt: Date.now(), treeText: EXAMPLE_TREE,
+      tasks: [
+        { id: "t1", text: "Quieres preparar un café con leche para el desayuno. ¿Dónde buscarías el café?", answers: ["Almacén › Café, té e infusiones"] },
+        { id: "t2", text: "Necesitas algo para lavar los platos. ¿Dónde lo buscarías?", answers: ["Limpieza › Cocina"] },
+        { id: "t3", text: "Vas a preparar una ensalada caprese y te falta la albahaca. ¿Dónde la buscarías?", answers: ["Frutas y verduras › Hierbas frescas"] },
+      ],
+    };
+  }
+  function blankDraft() {
+    return { id: uid("d"), name: "", team: "", shuffle: true, days: 7, updatedAt: Date.now(), treeText: "Categoría 1\n  Subcategoría A\n  Subcategoría B\nCategoría 2\n  Subcategoría C\n  Subcategoría D\n", tasks: [{ id: uid("t"), text: "", answers: [] }] };
+  }
+  const loadDrafts = () => { let d = store.get("ttu.drafts", null); if (!d) { d = [exampleDraft()]; store.set("ttu.drafts", d); } return d; };
+  const saveDraft = (draft) => { draft.updatedAt = Date.now(); const all = loadDrafts().filter((d) => d.id !== draft.id); all.unshift(draft); store.set("ttu.drafts", all); };
+  const getDraft = (id) => loadDrafts().find((d) => d.id === id);
+  const participantUrl = (id) => `${BASE}?t=${id}`;
+  const resultsUrl = (id, sk) => `${BASE}?r=${id}#${sk}`;
+
+  /* ---------- state ---------- */
+  const S = { view: "home", draftId: null, test: null, testId: null, pk: null, sk: null, expireAt: 0, preview: false, run: null, cur: null, confirmDel: null, openPicks: new Set(), openPaths: new Set(), results: [], sample: false, loadErr: "", returnTo: "home" };
+  function go(view, patch) { Object.assign(S, patch || {}, { view }); render(); window.scrollTo(0, 0); }
+  function setUrl(qs) { try { history.replaceState(null, "", qs ? BASE + qs : BASE); } catch (e) {} }
+
+  function topbar(right) {
+    return `<header class="topbar"><div class="topbar-in"><a class="brand" href="${esc(BASE)}"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>Tree Test <small>UCOM</small></a><div class="row-actions">${right || ""}</div></div></header>`;
+  }
+  const footer = () => `<p class="footer">Sin cuentas ni registro. Las pruebas y sus resultados se borran solos al vencer (máximo 7 días). Los resultados viajan cifrados: solo los ve quien tiene el enlace privado.</p>`;
+
+  /* ---------- home ---------- */
+  function viewHome() {
+    const drafts = loadDrafts();
+    const items = drafts.map((d) => {
+      const pub = d.pub, live = pub && pub.expireAt > Date.now();
+      const confirming = S.confirmDel === d.id;
+      return `<div class="test-item">
+        <div class="meta"><b>${esc(d.name || "Prueba sin nombre")}${d.example ? '<span class="badge">Ejemplo</span>' : ""}${pub ? (live ? `<span class="badge live">Publicada · ${esc(timeLeft(pub.expireAt))}</span>` : '<span class="badge gone">Vencida</span>') : ""}</b>
+        <span class="muted small">${esc(d.team || "Sin equipo")} · ${d.tasks.length} ${d.tasks.length === 1 ? "tarea" : "tareas"}</span></div>
+        <div class="row-actions">
+          ${confirming ? `<span class="small">¿Borrar este borrador de tu navegador?</span><button class="btn small danger" data-a="delYes" data-id="${d.id}">Borrar</button><button class="btn small" data-a="delNo">Cancelar</button>`
+          : `<button class="btn small" data-a="edit" data-id="${d.id}">Editar</button>
+             <button class="btn small" data-a="tryDraft" data-id="${d.id}">Probar</button>
+             ${d.example ? `<button class="btn small" data-a="sampleResults">Resultados de ejemplo</button>` : ""}
+             ${live ? `<button class="btn small" data-a="shareDraft" data-id="${d.id}">Enlaces</button><button class="btn small" data-a="resultsDraft" data-id="${d.id}">Resultados</button>` : ""}
+             ${d.example ? "" : `<button class="btn small danger" data-a="delAsk" data-id="${d.id}">Borrar</button>`}`}
+        </div></div>`;
+    }).join("");
+    return topbar() + `<main class="wrap">
+      <section class="hero">
+        <p class="eyebrow">Arquitectura de información · Tree testing</p>
+        <h1>¿Encuentran lo que buscan en tu mapa del sitio?</h1>
+        <p class="lead">Carga el árbol de categorías de tu sitio, escribe algunas tareas y comparte el enlace. Cada persona recorre el árbol sin diseño visual y tú ves dónde acierta, dónde duda y dónde se pierde.</p>
+        <div class="row-actions"><button class="btn primary" data-a="new">Crear una prueba</button><button class="btn" data-a="tryDraft" data-id="example">Probar el ejemplo</button></div>
+      </section>
+      <ol class="steps">
+        <li><b>Escribe el árbol</b><span>Una categoría por línea, con sangría para las subcategorías.</span></li>
+        <li><b>Define las tareas</b><span>Necesidades reales y la respuesta correcta de cada una.</span></li>
+        <li><b>Comparte y analiza</b><span>Envía el enlace y mira en vivo el éxito, los rodeos y el primer clic.</span></li>
+      </ol>
+      <section class="card soft">
+        <h2>Como un correo descartable</h2>
+        <div class="facts">
+          <div><b>Sin cuentas</b><span>Nadie se registra. Al publicar recibes dos enlaces: uno para participantes y otro, privado, para ver resultados.</span></div>
+          <div><b>Se borra solo</b><span>Eliges 1, 3 o 7 días. Al vencer, la prueba deja de abrirse y se elimina con todos sus resultados.</span></div>
+          <div><b>Resultados cifrados</b><span>Las respuestas se cifran en el navegador de cada participante. Solo el enlace privado puede leerlas.</span></div>
+        </div>
+      </section>
+      <section class="card"><h2>Tus pruebas</h2><p class="hint">Los borradores y los enlaces se guardan solo en este navegador. Guarda el enlace privado de resultados en un lugar seguro.</p><div class="tests">${items}</div></section>
+    </main>` + footer();
+  }
+
+  /* ---------- builder ---------- */
+  function viewBuild() {
+    const d = getDraft(S.draftId);
+    const live = d.pub && d.pub.expireAt > Date.now();
+    return topbar(`<button class="btn small" data-a="home">← Tus pruebas</button>`) + `<main class="wrap">
+      <div><p class="eyebrow">${d.example ? "Ejemplo · editable" : "Borrador"}</p><h1>Arma tu tree test</h1></div>
+      <div class="fields">
+        <label class="f">Nombre de la prueba<input type="text" id="fName" maxlength="120" value="${esc(d.name)}" placeholder="Ej.: Arngren rediseñado"></label>
+        <label class="f">Equipo<input type="text" id="fTeam" maxlength="60" value="${esc(d.team)}" placeholder="Ej.: Equipo 3"></label>
+      </div>
+      <section class="card"><h2>1. Árbol del sitio</h2>
+        <p class="hint">Una categoría por línea. Usa dos espacios (o Tab) para indicar que una línea es subcategoría de la anterior. "Inicio" se agrega solo. Las respuestas correctas deben ser categorías finales, sin subcategorías.</p>
+        <div class="split">
+          <label class="f">Texto del árbol<textarea id="treeText" spellcheck="false" aria-describedby="treeHelp">${esc(d.treeText)}</textarea><span id="treeHelp" class="small muted" style="font-weight:400">Tab agrega sangría y Shift + Tab la quita. Pulsa Esc y luego Tab para salir del campo.</span></label>
+          <div class="f"><span>Vista previa</span><div class="tp-box" id="treePreview"></div><div class="legend"><span>Categoría con subcategorías</span><span class="lf">Destino final</span></div></div>
+        </div>
+        <div id="treeWarn"></div>
+      </section>
+      <section class="card"><h2>2. Tareas</h2>
+        <p class="hint">Describe una necesidad de la persona, sin copiar palabras del menú. Mal: "Busca Drones". Bien: "Quieres filmar tu casa desde el aire". Máximo 10 tareas.</p>
+        <div id="tasks" class="tests"></div>
+        <div class="row-actions"><button class="btn" data-a="addTask" id="addTaskBtn">+ Agregar tarea</button></div>
+        <label class="check"><input type="checkbox" id="fShuffle" ${d.shuffle ? "checked" : ""}> Mezclar el orden de las tareas para cada participante</label>
+      </section>
+      ${live ? `<p class="notice">Ya publicaste esta prueba (${esc(timeLeft(d.pub.expireAt))}). Si publicas de nuevo se crean enlaces nuevos; los resultados anteriores siguen en el enlace anterior hasta que venza.</p>` : ""}
+    </main>
+    <div class="actionbar"><div class="actionbar-in">
+      <button class="btn" data-a="previewDraft">Probar como participante</button>
+      <label class="inline-field" for="fDays">Se borra en <select id="fDays">${RETENTION.map((n) => `<option value="${n}" ${(d.days || 7) === n ? "selected" : ""}>${n} ${n === 1 ? "día" : "días"}</option>`).join("")}</select></label>
+      <button class="btn primary" data-a="publish">Publicar y obtener enlaces</button>
+      <span class="msg" id="buildMsg" role="status"></span></div></div>`;
+  }
+  function renderTreePreview(d) {
+    const p = parseTree(d.treeText);
+    const rec = (n) => `<li class="${n.children.length ? "br" : "lf"}"><span>${esc(n.label)}</span>${n.children.length ? `<ul>${n.children.map(rec).join("")}</ul>` : ""}</li>`;
+    const box = document.getElementById("treePreview");
+    if (box) box.innerHTML = p.count ? `<ul class="tp"><li class="br root"><span>Inicio</span><ul>${p.root.children.map(rec).join("")}</ul></li></ul>` : `<p class="muted small">Escribe categorías a la izquierda para ver el árbol.</p>`;
+    const notes = [];
+    if (p.dupes.length) notes.push(`Etiquetas repetidas en el mismo nivel: ${esc(p.dupes.join(", "))}.`);
+    if (p.maxDepth > 6) notes.push("Más de 6 niveles: las personas se van a perder.");
+    if (p.count > 250) notes.push(`${p.count} ítems: el máximo es 250.`);
+    if (p.root.children.length > 9) notes.push(`El primer nivel tiene ${p.root.children.length} categorías. Más de 7 suele ser difícil de recorrer.`);
+    const w = document.getElementById("treeWarn");
+    if (w) w.innerHTML = notes.length ? `<div class="warn">${notes.join("<br>")}</div>` : "";
+  }
+  function renderTasks(d) {
+    const box = document.getElementById("tasks"); if (!box) return;
+    const leaves = leavesOf(parseTree(d.treeText).root), keys = new Set(leaves.map((l) => l.key));
+    const groups = []; leaves.forEach((l) => { const g = l.labels.length > 1 ? l.labels[0] : "Primer nivel"; let G = groups.find((x) => x.name === g); if (!G) groups.push(G = { name: g, items: [] }); G.items.push(l); });
+    box.innerHTML = d.tasks.map((t, i) => {
+      const chips = t.answers.length ? t.answers.map((a) => `<span class="chip ${keys.has(a) ? "" : "missing"}">${esc(a)}${keys.has(a) ? "" : " · ya no existe"}</span>`).join("") : `<span class="small muted">Todavía no marcaste la respuesta correcta.</span>`;
+      const list = groups.map((g) => `<div class="grp">${esc(g.name)}</div>` + g.items.map((l) => `<label><input type="checkbox" data-a="ans" data-task="${t.id}" value="${esc(l.key)}" ${t.answers.includes(l.key) ? "checked" : ""}> <span>${esc(l.labels.slice(g.name === "Primer nivel" ? 0 : 1).join(" › "))}</span></label>`).join("")).join("");
+      return `<div class="task-ed"><div class="task-ed-head"><b>Tarea ${i + 1}</b>${d.tasks.length > 1 ? `<button class="btn small danger" data-a="delTask" data-task="${t.id}">Quitar</button>` : ""}</div>
+        <label class="f" style="font-weight:400"><span class="small muted">Texto que verá la persona</span><textarea rows="2" maxlength="400" data-task-text="${t.id}" placeholder="Ej.: Quieres regalarle a tu hijo un auto eléctrico para jugar. ¿Dónde lo buscarías?">${esc(t.text)}</textarea></label>
+        <div class="f" style="font-weight:400"><span class="small muted">Respuesta correcta (puede haber más de una)</span><div class="chips">${chips}</div></div>
+        <details class="pick" data-pick="${t.id}" ${S.openPicks.has(t.id) ? "open" : ""}><summary>Elegir en el árbol</summary><div class="pick-list">${list || '<p class="small muted">El árbol todavía no tiene destinos finales.</p>'}</div></details></div>`;
+    }).join("");
+    const add = document.getElementById("addTaskBtn"); if (add) add.disabled = d.tasks.length >= 10;
+  }
+  let treeTimer = null;
+  function bindBuild() {
+    const d = getDraft(S.draftId);
+    renderTreePreview(d); renderTasks(d);
+    const save = () => saveDraft(d);
+    document.getElementById("fName").addEventListener("input", (e) => { d.name = e.target.value; save(); });
+    document.getElementById("fTeam").addEventListener("input", (e) => { d.team = e.target.value; save(); });
+    document.getElementById("fShuffle").addEventListener("change", (e) => { d.shuffle = e.target.checked; save(); });
+    document.getElementById("fDays").addEventListener("change", (e) => { d.days = +e.target.value; save(); });
+    const ta = document.getElementById("treeText");
+    ta.addEventListener("input", () => { d.treeText = ta.value; save(); clearTimeout(treeTimer); treeTimer = setTimeout(() => { renderTreePreview(d); renderTasks(d); }, 180); });
+    let escaped = false;
+    ta.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") { escaped = true; return; }
+      if (e.key !== "Tab" || escaped) { escaped = false; return; }
+      e.preventDefault();
+      const v = ta.value, s = ta.selectionStart, en = ta.selectionEnd;
+      const ls = v.lastIndexOf("\n", s - 1) + 1;
+      const le = v.indexOf("\n", en); const lineEnd = le === -1 ? v.length : le;
+      const block = v.slice(ls, lineEnd).split("\n");
+      const out = block.map((l) => (e.shiftKey ? l.replace(/^( {1,2}|\t)/, "") : "  " + l));
+      ta.value = v.slice(0, ls) + out.join("\n") + v.slice(lineEnd);
+      const diff = out.join("\n").length - block.join("\n").length;
+      if (s === en && !e.shiftKey) ta.selectionStart = ta.selectionEnd = s + 2;
+      else { ta.selectionStart = ls; ta.selectionEnd = lineEnd + diff; }
+      ta.dispatchEvent(new Event("input"));
+    });
+    const tasks = document.getElementById("tasks");
+    tasks.addEventListener("input", (e) => { const id = e.target.getAttribute("data-task-text"); if (!id) return; const t = d.tasks.find((x) => x.id === id); if (t) { t.text = e.target.value; save(); } });
+    tasks.addEventListener("change", (e) => {
+      if (e.target.getAttribute("data-a") !== "ans") return;
+      const t = d.tasks.find((x) => x.id === e.target.getAttribute("data-task")); if (!t) return;
+      const v = e.target.value; t.answers = e.target.checked ? [...new Set(t.answers.concat(v))] : t.answers.filter((a) => a !== v);
+      save(); renderTasks(d);
+    });
+    tasks.addEventListener("toggle", (e) => { const id = e.target.getAttribute && e.target.getAttribute("data-pick"); if (!id) return; if (e.target.open) S.openPicks.add(id); else S.openPicks.delete(id); }, true);
+  }
+  async function publish(d) {
+    const test = buildTest(d), keys = await genKeys(), days = RETENTION.includes(d.days) ? d.days : 7;
+    const expireAt = Date.now() + days * DAY - 60000;
+    let id = randId(12), tries = 0;
+    for (;;) {
+      try { await fsCreateTest(id, test, keys.pk, expireAt); break; }
+      catch (e) { if (++tries >= 2) throw e; id = randId(12); }
+    }
+    d.pub = { id, sk: keys.sk, expireAt, days };
+    saveDraft(d);
+    sweepExpired();
+  }
+
+  /* ---------- share ---------- */
+  function viewShare() {
+    const d = getDraft(S.draftId), pub = d.pub, pUrl = participantUrl(pub.id), rUrl = resultsUrl(pub.id, pub.sk);
+    return topbar(`<button class="btn small" data-a="home">← Tus pruebas</button>`) + `<main class="wrap">
+      <div><p class="eyebrow">Publicada · se borra el ${esc(fmtDate(pub.expireAt))}</p><h1>${esc(d.name)}</h1></div>
+      <section class="card">
+        <div class="sharebox">
+          <div style="display:grid;gap:14px;min-width:0">
+            <h2>Enlace para participantes</h2>
+            <div class="urlrow"><input type="text" id="pUrl" value="${esc(pUrl)}" readonly aria-label="Enlace para participantes"><button class="btn primary" data-a="copy" data-src="pUrl">Copiar</button></div>
+            <p class="hint">Compártelo por chat o muestra el QR en pantalla. Cada persona hace la prueba una vez y sus respuestas te llegan solas.</p>
+          </div>
+          <div style="display:grid;gap:6px;justify-items:start"><div class="qr" id="qr" aria-label="Código QR del enlace para participantes"></div><span class="small muted">Para abrirlo desde el celular</span></div>
+        </div>
+      </section>
+      <section class="card keycard">
+        <h2>Enlace privado de resultados</h2>
+        <p class="hint">Es la única llave para ver las respuestas. No se puede recuperar: guárdalo y compártelo solo con tu equipo, nunca con participantes.</p>
+        <div class="urlrow"><input type="text" id="rUrl" value="${esc(rUrl)}" readonly aria-label="Enlace privado de resultados"><button class="btn" data-a="copy" data-src="rUrl">Copiar</button></div>
+        <div class="row-actions"><a class="btn primary" href="${esc(rUrl)}">Abrir resultados</a><button class="btn" data-a="tryDraft" data-id="${d.id}">Probar como participante</button></div>
+      </section>
+      <p class="small" id="copyMsg" role="status"></p>
+    </main>` + footer();
+  }
+  function bindShare() {
+    const d = getDraft(S.draftId), el = document.getElementById("qr");
+    if (el && window.QRCode) { try { new QRCode(el, { text: participantUrl(d.pub.id), width: 180, height: 180, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M }); } catch (e) { el.parentElement.hidden = true; } }
+    else if (el) el.parentElement.hidden = true;
+  }
+
+  /* ---------- participant ---------- */
+  function shuffle(a) { const r = a.slice(); for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; }
+  const runKey = () => "ttu.run." + S.testId;
+  function previewBar() { return S.preview ? `<div class="preview-bar"><div class="topbar-in"><span>Vista previa de <b>${esc(S.test.n)}</b>. No se envía ninguna respuesta.</span><button class="btn small" data-a="exitPreview">Salir de la vista previa</button></div></div>` : ""; }
+  function viewIntro() {
+    const t = S.test, prior = !S.preview && store.get(runKey(), null);
+    if (prior && prior.done) {
+      return topbar() + `<main class="wrap narrow"><p class="eyebrow">Tree test${t.m ? " · " + esc(t.m) : ""}</p><h1>Ya completaste esta prueba</h1>
+        <p class="lead">${prior.sent ? "Tus respuestas ya llegaron al equipo. ¡Gracias!" : "Tus respuestas todavía no se enviaron."}</p>
+        <div class="row-actions">${prior.sent ? "" : `<button class="btn primary" data-a="send">Enviar respuestas</button>`}</div><p class="small" id="sendMsg" role="status"></p></main>` + footer();
+    }
+    return previewBar() + (S.preview ? "" : topbar()) + `<main class="wrap narrow">
+      <p class="eyebrow">Tree test${t.m ? " · " + esc(t.m) : ""}</p>
+      <h1>${esc(t.n)}</h1>
+      <ol class="how">
+        <li>Arriba verás una tarea. Abajo, las categorías de un sitio web, sin diseño.</li>
+        <li>Haz clic en las categorías para recorrerlas. Puedes volver atrás cuando quieras.</li>
+        <li>Cuando encuentres dónde lo buscarías, elige <b>La encontraría aquí</b>.</li>
+      </ol>
+      <p class="muted">Estamos evaluando el sitio, no a ti. Si no sabes dónde buscar, puedes saltar la tarea. Son ${t.k.length} ${t.k.length === 1 ? "tarea" : "tareas"}, unos ${Math.max(1, Math.round(t.k.length * 0.6))} minutos.</p>
+      <label class="f">Tu nombre (opcional)<input type="text" id="pName" maxlength="40" autocomplete="given-name" placeholder="Para que el equipo sepa quién respondió"></label>
+      <div class="row-actions"><button class="btn primary" data-a="start">Empezar</button></div>
+    </main>` + (S.preview ? "" : footer());
+  }
+  function startRun(name) {
+    const order = S.test.s ? shuffle(S.test.k.map((_, i) => i)) : S.test.k.map((_, i) => i);
+    S.run = { pid: randId(6), name: (name || "").trim().slice(0, 40), order, i: 0, res: [], done: false, sent: false };
+    persistRun(); newTask(); go("task");
+  }
+  function persistRun() { if (!S.preview) store.set(runKey(), S.run); }
+  function newTask() { S.cur = { open: [], sel: null, clicks: [], t0: performance.now(), fresh: true }; }
+  const keyOf = (path) => (path.length ? path.join(".") : "r");
+  function viewTask() {
+    const t = S.test, r = S.run, k = r.order[r.i], c = S.cur;
+    const rows = [], pathNodes = [["Inicio", []]];
+    c.open.forEach((_, j) => { const p = c.open.slice(0, j + 1); pathNodes.push([nodeAt(t, p)[0], p]); });
+    pathNodes.forEach(([label], j) => {
+      const deepest = j === pathNodes.length - 1 && !c.sel;
+      rows.push(`<button class="trow open" style="--d:${j}" data-a="up" data-j="${j}" aria-expanded="${deepest}">${deepest ? '<span class="tri" aria-hidden="true"></span>' : ""}<span>${esc(label)}</span></button>`);
+    });
+    if (c.sel) {
+      rows.push(`<div class="sel-wrap enter" style="--d:${c.sel.length}"><div class="trow sel" role="status">${esc(nodeAt(t, c.sel)[0])}</div><button class="find" data-a="confirm">← La encontraría aquí</button></div>`);
+    } else {
+      childrenAt(t, c.open).forEach((n, i) => rows.push(`<button class="trow ${c.fresh ? "" : "enter"}" style="--d:${c.open.length + 1}" data-a="down" data-i="${i}" ${n[1] ? 'aria-expanded="false"' : ""}><span>${esc(n[0])}</span></button>`));
+    }
+    c.fresh = false;
+    return previewBar() + `<div class="tt-head"><div class="tt-head-in"><div class="tt-row1"><h2>Tarea ${r.i + 1} de ${r.order.length}</h2><button class="link" data-a="skip">Saltar esta tarea</button></div><p class="tt-task">${esc(t.k[k][0])}</p></div></div>
+      <div class="tt-body"><div class="tree" role="group" aria-label="Categorías del sitio">${rows.join("")}</div></div>`;
+  }
+  async function finishTask(selKey) {
+    const r = S.run, c = S.cur;
+    r.res.push([r.order[r.i], selKey, c.clicks, Math.round(performance.now() - c.t0)]);
+    r.i++;
+    if (r.i >= r.order.length) { r.done = true; persistRun(); go("done"); sendRun(); }
+    else { persistRun(); newTask(); go("task"); }
+  }
+  async function sendRun() {
+    if (S.preview || !S.run || S.run.sent) return;
+    const msg = () => document.getElementById("sendMsg");
+    try {
+      const encd = await encryptFor(S.pk, { p: S.run.pid, n: S.run.name, r: S.run.res });
+      await fsAddResult(S.testId, encd, S.expireAt);
+      S.run.sent = true; persistRun(); render();
+    } catch (e) {
+      S.sendErr = true; render();
+      const m = msg(); if (m) m.textContent = "No se pudieron enviar tus respuestas. Revisa tu conexión y vuelve a intentarlo.";
+    }
+  }
+  function viewDone() {
+    const t = S.test, r = S.run;
+    if (S.preview) return previewBar() + `<main class="wrap narrow"><p class="eyebrow">Vista previa</p><h1>Así termina la prueba</h1><p class="lead">Los participantes verán un mensaje de agradecimiento y sus respuestas llegarán solas a los resultados.</p><div class="row-actions"><button class="btn primary" data-a="exitPreview">Salir de la vista previa</button></div></main>`;
+    return topbar() + `<main class="wrap narrow">
+      <p class="eyebrow">Prueba completa</p>
+      <h1>${r.sent ? "Listo, ¡gracias!" : "Enviando tus respuestas…"}</h1>
+      <p class="lead">${r.sent ? `Tus respuestas ya llegaron a ${t.m ? "<b>" + esc(t.m) + "</b>" : "quien creó la prueba"}. Puedes cerrar esta página.` : "Un momento, no cierres la página."}</p>
+      ${!r.sent && S.sendErr ? `<div class="row-actions"><button class="btn primary" data-a="send">Reintentar envío</button></div>` : ""}
+      <p class="small" id="sendMsg" role="status"></p>
+    </main>` + footer();
+  }
+
+  /* ---------- results ---------- */
+  const median = (a) => { if (!a.length) return 0; const s = a.slice().sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+  const pct = (n, d) => (d ? Math.round((n / d) * 100) : 0);
+  function analyze(test, list) {
+    return test.k.map((task, k) => {
+      const correct = new Set(task[1]), firstOK = new Set(task[1].map((x) => x.split(".")[0]));
+      const out = { ds: 0, is: 0, df: 0, if: 0, sk: 0, n: 0, times: [], first: {}, firstGood: 0, firstN: 0, dest: {}, paths: [] };
+      list.forEach((p) => {
+        const e = (p.r || []).find((x) => x[0] === k); if (!e) return;
+        const [, sel, clicks, ms] = e; out.n++; out.times.push(ms / 1000);
+        const direct = !clicks.some((c) => c[0] === "^");
+        const ok = sel != null && correct.has(sel);
+        if (sel == null) out.sk++; else if (ok) { if (direct) out.ds++; else out.is++; } else { if (direct) out.df++; else out.if++; }
+        const f = clicks.find((c) => c[0] !== "^");
+        if (f) { const top = f.split(".")[0]; out.first[top] = (out.first[top] || 0) + 1; out.firstN++; if (firstOK.has(top)) out.firstGood++; }
+        if (sel != null) out.dest[sel] = (out.dest[sel] || 0) + 1;
+        out.paths.push({ name: p.n, sel, ok, direct, clicks, ms });
+      });
+      out.success = pct(out.ds + out.is, out.n);
+      out.directOnly = pct(out.paths.filter((x) => x.direct).length, out.n);
+      out.firstPct = pct(out.firstGood, out.firstN);
+      out.med = Math.round(median(out.times));
+      return out;
+    });
+  }
+  function trailHTML(test, clicks) {
+    return clicks.map((c) => c[0] === "^" ? `<span class="back">↩ ${esc(labelsFor(test, c.slice(1)).slice(-1)[0])}</span>` : esc(labelsFor(test, c).slice(-1)[0])).join(" → ") || "Sin clics";
+  }
+  function summaryText(t, list) {
+    const st = analyze(t, list);
+    return [`Tree test: ${t.n}${t.m ? " (" + t.m + ")" : ""} · ${list.length} participantes`].concat(st.map((s, k) => `Tarea ${k + 1}: éxito ${s.success}% · sin volver atrás ${s.directOnly}% · primer clic correcto ${s.firstPct}% · ${s.med} s`)).join("\n");
+  }
+  function viewResults() {
+    const t = S.test, list = S.results, stats = analyze(t, list), n = list.length;
+    const avg = (f) => { const withN = stats.filter((s) => s.n); return withN.length ? Math.round(withN.reduce((a, s) => a + s[f], 0) / withN.length) : 0; };
+    const cards = stats.map((s, k) => {
+      const seg = (cls, v) => (v ? `<i class="${cls}" style="width:${(v / s.n) * 100}%"></i>` : "");
+      const firstRows = t.t.map((node, i) => ({ i, label: node[0], v: s.first[i] || 0 })).filter((x) => x.v).sort((a, b) => b.v - a.v);
+      const goodFirst = new Set(t.k[k][1].map((x) => x.split(".")[0]));
+      const destRows = Object.entries(s.dest).sort((a, b) => b[1] - a[1]);
+      const correctSet = new Set(t.k[k][1]);
+      return `<section class="card rtask">
+        <div class="rtask-head"><p class="eyebrow">Tarea ${k + 1}</p><h3>${esc(t.k[k][0])}</h3><p class="small muted">Respuesta correcta: ${t.k[k][1].map((x) => esc(labelsFor(t, x).join(" › "))).join(" · ")}</p></div>
+        ${s.n ? `<div class="kpis"><span><b>${s.success}%</b>éxito</span><span><b>${s.directOnly}%</b>sin volver atrás</span><span><b>${s.firstPct}%</b>primer clic correcto</span><span><b>${s.med} s</b>tiempo mediano</span></div>
+        <div class="bar" role="img" aria-label="Éxito directo ${s.ds}, éxito con rodeos ${s.is}, error directo ${s.df}, error con rodeos ${s.if}, saltaron ${s.sk}">${seg("c-ds", s.ds)}${seg("c-is", s.is)}${seg("c-df", s.df)}${seg("c-if", s.if)}${seg("c-sk", s.sk)}</div>
+        <div class="blegend"><span><i class="c-ds"></i>Éxito directo ${s.ds}</span><span><i class="c-is"></i>Éxito con rodeos ${s.is}</span><span><i class="c-df"></i>Error directo ${s.df}</span><span><i class="c-if"></i>Error con rodeos ${s.if}</span><span><i class="c-sk"></i>Saltaron ${s.sk}</span></div>
+        <div class="cols2">
+          <div class="hlist"><h3>Primer clic</h3>${firstRows.map((x) => `<div class="hrow ${goodFirst.has(String(x.i)) ? "good" : ""}"><span class="lbl">${esc(x.label)}${goodFirst.has(String(x.i)) ? '<span class="ok-mark" aria-label="camino correcto">✓</span>' : ""}</span><span class="num">${pct(x.v, s.firstN)}%</span><span class="track"><i style="width:${pct(x.v, s.firstN)}%"></i></span></div>`).join("") || '<p class="small muted">Sin clics registrados.</p>'}</div>
+          <div class="hlist"><h3>Dónde lo eligieron</h3>${destRows.map(([key, v]) => `<div class="hrow ${correctSet.has(key) ? "good" : ""}"><span class="lbl">${esc(labelsFor(t, key).join(" › "))}${correctSet.has(key) ? '<span class="ok-mark" aria-label="correcto">✓</span>' : ""}</span><span class="num">${v}</span><span class="track"><i style="width:${pct(v, s.n)}%"></i></span></div>`).join("")}${s.sk ? `<div class="hrow"><span class="lbl muted">Saltaron la tarea</span><span class="num">${s.sk}</span><span class="track"><i style="width:${pct(s.sk, s.n)}%"></i></span></div>` : ""}</div>
+        </div>
+        <details class="paths" data-paths="${k}" ${S.openPaths.has(k) ? "open" : ""}><summary>Ver el recorrido de cada persona</summary><div class="pathlist">${s.paths.map((p, i) => `<div><span><b>${esc(p.name || "Participante " + (i + 1))}</b><span class="pill ${p.sel == null ? "sk" : p.ok ? "ok" : "bad"}">${p.sel == null ? "Saltó" : p.ok ? (p.direct ? "Éxito directo" : "Éxito con rodeos") : (p.direct ? "Error directo" : "Error con rodeos")}</span> <span class="muted">${Math.round(p.ms / 1000)} s</span></span><span class="trail">${trailHTML(t, p.clicks)}${p.sel != null ? ` → <b>${esc(labelsFor(t, p.sel).slice(-1)[0])}</b>` : ""}</span></div>`).join("")}</div></details>`
+        : `<p class="small muted">Sin respuestas todavía.</p>`}
+      </section>`;
+    }).join("");
+    const head = S.sample
+      ? `<p class="notice">Estos resultados son inventados: muestran cómo se lee el análisis. Publica una prueba para recibir respuestas reales.</p>`
+      : `<div class="row-actions"><span class="small muted">Se borra el ${esc(fmtDate(S.expireAt))} · ${esc(timeLeft(S.expireAt))}. Se actualiza sola cada 20 segundos.</span><button class="btn small" data-a="refresh">Actualizar ahora</button><button class="btn small" data-a="copyLink">Copiar enlace para participantes</button></div>`;
+    return topbar(`<button class="btn small" data-a="home">Inicio</button>`) + `<main class="wrap">
+      <div><p class="eyebrow">Resultados${t.m ? " · " + esc(t.m) : ""}</p><h1>${esc(t.n)}</h1></div>
+      ${head}
+      ${S.loadErr ? `<p class="warn">${esc(S.loadErr)}</p>` : ""}
+      ${n ? `<div class="stats"><div class="stat"><b>${n}</b><span>${n === 1 ? "participante" : "participantes"}</span></div><div class="stat"><b>${avg("success")}%</b><span>éxito promedio</span></div><div class="stat"><b>${avg("directOnly")}%</b><span>sin volver atrás</span></div></div>
+      <div class="row-actions"><button class="btn small" data-a="copySummary">Copiar resumen para el tablero</button></div>
+      <textarea id="summaryText" rows="6" hidden readonly></textarea>
+      ${cards}`
+      : `<section class="card soft empty"><h2>Todavía no hay respuestas</h2><p>Comparte el enlace para participantes. Las respuestas aparecen aquí apenas alguien termina.</p></section>`}
+      <p class="small" id="copyMsg" role="status"></p>
+    </main>` + footer();
+  }
+  async function loadResults() {
+    try {
+      const raw = await fsListResults(S.testId);
+      const list = [];
+      for (const rec of raw) { try { list.push(await decryptWith(S.sk, rec)); } catch (e) {} }
+      if (raw.length && !list.length) S.loadErr = "No se pudieron leer los resultados con este enlace. Revisa que el enlace privado esté completo.";
+      else S.loadErr = "";
+      S.results = list;
+    } catch (e) { S.loadErr = "No hay conexión con el servidor. Reintentando…"; }
+  }
+  let poll = null;
+  function startPolling() {
+    stopPolling();
+    poll = setInterval(async () => {
+      if (S.view !== "results" || S.sample || document.visibilityState !== "visible") return;
+      const before = S.results.length, err = S.loadErr;
+      await loadResults();
+      if (S.results.length !== before || S.loadErr !== err) { const y = window.scrollY; render(); window.scrollTo(0, y); }
+    }, 20000);
+  }
+  function stopPolling() { if (poll) clearInterval(poll); poll = null; }
+  function sampleList() {
+    return [
+      { n: "Ana", r: [[0, "2.3", ["2", "2.3"], 9000], [1, "4.1", ["4", "4.1"], 7000], [2, "0.2", ["0", "0.2"], 8000]] },
+      { n: "Bruno", r: [[0, "2.3", ["3", "^r", "2", "2.3"], 18000], [1, "4.1", ["4", "4.1"], 6000], [2, "0.1", ["0", "0.1"], 12000]] },
+      { n: "Carla", r: [[0, "2.3", ["1", "^r", "2", "2.3"], 21000], [1, "4.1", ["4", "4.1"], 8000], [2, "0.2", ["0", "0.2"], 7000]] },
+      { n: "Diego", r: [[0, "2.3", ["2", "2.3"], 11000], [1, "4.1", ["2", "^r", "4", "4.1"], 15000], [2, null, ["0", "^r"], 9000]] },
+      { n: "Elena", r: [[0, "2.3", ["2", "2.3"], 8000], [1, "4.2", ["4", "4.2"], 9000], [2, "0.2", ["0", "0.2"], 6000]] },
+      { n: "Fede", r: [[0, "2.3", ["2", "2.3"], 10000], [1, "4.1", ["4", "4.1"], 5000], [2, "0.2", ["0", "0.1", "^0", "0.2"], 14000]] },
+    ];
+  }
+
+  /* ---------- render + events ---------- */
+  function viewMessage(title, text) {
+    return topbar(`<button class="btn small" data-a="home">Ir al inicio</button>`) + `<main class="wrap narrow"><h1>${esc(title)}</h1><p class="lead">${esc(text)}</p></main>` + footer();
+  }
+  function render() {
+    let html = "";
+    if (S.view === "home") html = viewHome();
+    else if (S.view === "build") html = viewBuild();
+    else if (S.view === "share") html = viewShare();
+    else if (S.view === "intro") html = viewIntro();
+    else if (S.view === "task") html = viewTask();
+    else if (S.view === "done") html = viewDone();
+    else if (S.view === "results") html = viewResults();
+    else if (S.view === "loading") html = topbar() + `<main class="wrap narrow"><p class="lead">Cargando…</p></main>`;
+    else if (S.view === "gone") html = viewMessage("Esta prueba ya no existe", "Las pruebas se borran solas cuando vencen. Si recién te la compartieron, revisa que el enlace esté completo o pide uno nuevo al equipo.");
+    else if (S.view === "badkey") html = viewMessage("Falta la llave de resultados", "Este enlace de resultados está incompleto: la parte después del # es la llave. Cópialo completo desde la pantalla donde publicaste la prueba.");
+    else if (S.view === "offline") html = viewMessage("No hay conexión", "No pude conectarme con el servidor. Revisa tu conexión a internet y recarga la página.");
+    app.innerHTML = html;
+    if (S.view === "build") bindBuild();
+    if (S.view === "share") bindShare();
+    if (S.view === "results") { app.querySelectorAll("details[data-paths]").forEach((d) => d.addEventListener("toggle", () => { const k = +d.getAttribute("data-paths"); if (d.open) S.openPaths.add(k); else S.openPaths.delete(k); })); }
+  }
+  async function copyText(text, srcEl) {
+    const msg = document.getElementById("copyMsg");
+    try { await navigator.clipboard.writeText(text); if (msg) msg.textContent = "Copiado."; }
+    catch (e) { if (srcEl && srcEl.select) { srcEl.hidden = false; srcEl.select(); } if (msg) msg.textContent = "Texto seleccionado: cópialo con Ctrl + C o Cmd + C."; }
+  }
+
+  app.addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-a]"); if (!b || b.disabled) return;
+    const a = b.getAttribute("data-a"), id = b.getAttribute("data-id");
+    if (a === "ans") return;
+    if (a === "home") { stopPolling(); S.confirmDel = null; setUrl(""); go("home", { sample: false }); }
+    else if (a === "new") { const d = blankDraft(); saveDraft(d); S.openPicks = new Set(); go("build", { draftId: d.id }); }
+    else if (a === "edit") { S.openPicks = new Set(); go("build", { draftId: id }); }
+    else if (a === "delAsk") { S.confirmDel = id; render(); }
+    else if (a === "delNo") { S.confirmDel = null; render(); }
+    else if (a === "delYes") { store.set("ttu.drafts", loadDrafts().filter((d) => d.id !== id)); S.confirmDel = null; render(); }
+    else if (a === "addTask") { const d = getDraft(S.draftId); if (d.tasks.length < 10) { d.tasks.push({ id: uid("t"), text: "", answers: [] }); saveDraft(d); renderTasks(d); } }
+    else if (a === "delTask") { const d = getDraft(S.draftId); d.tasks = d.tasks.filter((t) => t.id !== b.getAttribute("data-task")); saveDraft(d); renderTasks(d); }
+    else if (a === "previewDraft" || a === "publish") {
+      const d = getDraft(S.draftId), errs = validate(d), msg = document.getElementById("buildMsg");
+      if (errs.length) { msg.innerHTML = `<span class="warn" style="display:block">${errs.map(esc).join("<br>")}</span>`; return; }
+      if (a === "previewDraft") { const test = buildTest(d); Object.assign(S, { test, testId: "preview", preview: true, returnTo: "build" }); go("intro"); return; }
+      b.disabled = true; msg.textContent = "Publicando…";
+      try { await publish(d); go("share"); }
+      catch (err) { b.disabled = false; msg.innerHTML = `<span class="warn" style="display:block">No se pudo publicar. Revisa tu conexión e inténtalo de nuevo.</span>`; }
+    }
+    else if (a === "tryDraft") {
+      const d = getDraft(id); if (validate(d).length) { go("build", { draftId: id }); return; }
+      const test = buildTest(d); Object.assign(S, { draftId: id, test, testId: "preview", preview: true, returnTo: S.view === "share" ? "share" : "home" }); go("intro");
+    }
+    else if (a === "exitPreview") { S.preview = false; go(S.returnTo || "home"); }
+    else if (a === "shareDraft") { go("share", { draftId: id }); }
+    else if (a === "resultsDraft") { const d = getDraft(id); location.href = resultsUrl(d.pub.id, d.pub.sk); }
+    else if (a === "sampleResults") { const d = getDraft("example"); Object.assign(S, { test: buildTest(d), sample: true, results: sampleList(), loadErr: "", openPaths: new Set() }); go("results"); }
+    else if (a === "start") { startRun((document.getElementById("pName") || {}).value); }
+    else if (a === "send") { b.disabled = true; S.sendErr = false; await sendRun(); }
+    else if (a === "down") {
+      const c = S.cur, i = +b.getAttribute("data-i"), path = c.open.concat(i), n = nodeAt(S.test, path);
+      c.clicks.push(keyOf(path));
+      if (n[1] && n[1].length) c.open = path; else c.sel = path;
+      render();
+    }
+    else if (a === "up") {
+      const c = S.cur, j = +b.getAttribute("data-j");
+      if (c.sel || j < c.open.length) { c.open = c.open.slice(0, j); c.sel = null; c.clicks.push("^" + keyOf(c.open)); }
+      else if (j > 0) { c.open = c.open.slice(0, j - 1); c.clicks.push("^" + keyOf(c.open)); }
+      else return;
+      render();
+    }
+    else if (a === "confirm") { b.disabled = true; await finishTask(keyOf(S.cur.sel)); }
+    else if (a === "skip") { await finishTask(null); }
+    else if (a === "copy") { const el = document.getElementById(b.getAttribute("data-src")); await copyText(el.value, el); }
+    else if (a === "copyLink") { await copyText(participantUrl(S.testId)); }
+    else if (a === "refresh") { b.disabled = true; await loadResults(); render(); }
+    else if (a === "copySummary") { const ta = document.getElementById("summaryText"); ta.value = summaryText(S.test, S.results); await copyText(ta.value, ta); }
+  });
+
+  async function boot() {
+    const q = new URLSearchParams(location.search);
+    const t = q.get("t"), r = q.get("r");
+    if (t || r) {
+      const id = (t || r).replace(/[^A-Za-z0-9]/g, "");
+      go("loading");
+      let doc = null;
+      try { doc = await fsGetTest(id); } catch (e) { go("offline"); return; }
+      if (!doc) { go("gone"); return; }
+      Object.assign(S, { test: doc.test, pk: doc.pk, expireAt: doc.expireAt, testId: id, preview: false });
+      if (r) {
+        const sk = location.hash.slice(1);
+        if (!sk) { go("badkey"); return; }
+        S.sk = sk; S.sample = false; S.openPaths = new Set();
+        await loadResults(); go("results"); startPolling();
+        return;
+      }
+      const prior = store.get(runKey(), null);
+      if (prior && prior.done) { S.run = prior; go("intro"); if (!prior.sent) sendRun(); return; }
+      if (prior && prior.i < prior.order.length) { S.run = prior; newTask(); go("task"); return; }
+      go("intro");
+      return;
+    }
+    go("home");
+    setTimeout(sweepExpired, 1500);
+  }
+  boot();
+})();
+</script>
+</body>
+</html>

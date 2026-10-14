@@ -1,0 +1,52 @@
+rules_version = '2';
+
+// Tree Test UCOM: anonymous, disposable storage. No user accounts.
+// - Anyone can create a test and read it by its id until it expires.
+// - Anyone can add an encrypted result to a test that has not expired.
+// - Nobody can edit anything. Once expireAt passes, a test can no longer
+//   be read, and the daily cleanup job (or anyone) may delete it and its
+//   results. Tests live at most 8 days.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /tests/{testId} {
+      allow get: if resource.data.expireAt > request.time;
+      allow list, delete: if resource.data.expireAt < request.time;
+      allow update: if false;
+      allow create: if testId.matches('^[A-Za-z0-9]{12}$')
+        && request.resource.data.keys().hasOnly(['d', 'pk', 'expireAt'])
+        && request.resource.data.keys().hasAll(['d', 'pk', 'expireAt'])
+        && request.resource.data.d is string
+        && request.resource.data.d.size() > 10
+        && request.resource.data.d.size() < 60000
+        && request.resource.data.pk is string
+        && request.resource.data.pk.size() < 200
+        && request.resource.data.expireAt is timestamp
+        && request.resource.data.expireAt > request.time
+        && request.resource.data.expireAt < request.time + duration.value(8, 'd');
+
+      match /results/{resultId} {
+        // Results are encrypted in the participant's browser with the
+        // creator's public key; only the private results link can read them.
+        allow get, list: if true;
+        allow update: if false;
+        allow create: if request.resource.data.keys().hasOnly(['c', 'e', 'iv', 'expireAt'])
+          && request.resource.data.keys().hasAll(['c', 'e', 'iv', 'expireAt'])
+          && request.resource.data.c is string
+          && request.resource.data.c.size() < 20000
+          && request.resource.data.e is string
+          && request.resource.data.e.size() < 200
+          && request.resource.data.iv is string
+          && request.resource.data.iv.size() < 40
+          && request.resource.data.expireAt is timestamp
+          && request.resource.data.expireAt > request.time
+          && request.resource.data.expireAt == get(/databases/$(database)/documents/tests/$(testId)).data.expireAt;
+      }
+    }
+
+    // Cleanup: expired results can be found across all tests and deleted.
+    match /{path=**}/results/{resultId} {
+      allow list, delete: if resource.data.expireAt < request.time;
+    }
+  }
+}
